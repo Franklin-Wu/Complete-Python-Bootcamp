@@ -31,16 +31,36 @@ def print_board():
         print board_line
     print '+-+-+-+'
     print 'Player {0}, where do you want to place your token (1-9)?'.format(get_char(turn))
-    is_board_winning()
+    print get_winner()
     print
 
-def is_board_winning():
-    winnable_lists = map(lambda indices: [board[index] for index in indices], get_winnable_lists_indices())
-    print winnable_lists
+def get_winner():
+    # Returns 'O', 'X' or None (no winner).
+    #
+    # This is probably _not_ the most efficient way to do this; it is meant to exercise map(),
+    # reduce() and any().
+    winnable_lists = map(lambda indices: [board[i] for i in indices], get_winnable_lists_indices())
+    totals = map(lambda winnable_list: (reduce(lambda x, y: x + y, winnable_list)), winnable_lists)
+    if any(map(lambda total: total == -3, totals)):
+        return 'O'
+    elif any(map(lambda total: total == 3, totals)):
+        return 'X'
+    else:
+        return None
 
 def main():
     print_board()
     board[4] = 1
+    print_board()
+    board[2] = 1
+    print_board()
+    board[6] = 1
+    print_board()
+    board[6] = -1
+    print_board()
+    board[0] = -1
+    print_board()
+    board[3] = -1
     print_board()
 
 if __name__ == '__main__':
