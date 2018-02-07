@@ -1,6 +1,6 @@
 board = [0] * 9
-
 turn_player = 1
+valid_positions = list("123456789")
 
 def get_char(value):
     if value == -1:
@@ -55,12 +55,20 @@ def get_winner():
         return None
 
 def get_turn_player_input():
-    pass
+    prompt = 'Player {0}, where do you place your token (1-9)? '.format(get_char(turn_player))
+    reminder_prompt = 'Invalid input; enter a digit from 1 to 9. '
+    s = raw_input(prompt)
+    while True:
+        # need to check for occupied cells
+        if s in valid_positions:
+            break
+        else:
+            s = raw_input(reminder_prompt)
 
 def play_turn():
     global turn_player
+    get_turn_player_input()
     print_board()
-    print 'Player {0}, where do you want to place your token (1-9)?'.format(get_char(turn_player))
     winner = get_winner()
     print winner
     print
@@ -68,7 +76,7 @@ def play_turn():
     return winner
 
 def main():
-    play_turn()
+    print_board()
     board[4] = 1
     play_turn()
     board[2] = 1
