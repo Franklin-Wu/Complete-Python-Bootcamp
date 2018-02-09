@@ -1,11 +1,11 @@
 board = [0] * 9
 turn_player = 1
-valid_positions = list("123456789")
+valid_positions = list('123456789')
 
-def get_char(value):
-    if value == -1:
+def get_player_char(player):
+    if player == -1:
         return 'O'
-    elif value == 1:
+    elif player == 1:
         return 'X'
     else:
         return ' '
@@ -27,13 +27,14 @@ def get_winnable_lists_indices():
 def print_board():
     for row in xrange(3):
         print '+-+-+-+'
-        board_line = '|' + '|'.join([get_char(board[(row * 3) + col]) for col in xrange(3)]) + '|'
-        board_line += '   ' + ' '.join([str((row * 3) + col + 1) for col in xrange(3)])
+        board_line = '|'
+        board_line += '|'.join([get_player_char(board[(row * 3) + col]) for col in xrange(3)])
+        board_line += '|   ' + ' '.join([str((row * 3) + col + 1) for col in xrange(3)])
         print board_line
     print '+-+-+-+'
 
-def get_winner():
-    # Returns 'O', 'X' or None (no winner).
+def get_winning_player():
+    # Returns 'O', 'X' or None (no winning player yet).
     #
     # This is probably _not_ the most efficient way to do this; it is meant to exercise map(),
     # reduce() and any().
@@ -46,49 +47,52 @@ def get_winner():
 
     if any(map(lambda total: total == -3, sums)):
         # If any of the sums are -3, O wins.
-        return 'O'
+        return -1
     elif any(map(lambda total: total == 3, sums)):
         # If any of the sums are -3, X wins.
-        return 'X'
+        return 1
         # Otherwise nobody wins (yet).
     else:
         return None
 
 def get_turn_player_input():
-    prompt = 'Player {0}, where do you place your token (1-9)? '.format(get_char(turn_player))
+    player_char = get_player_char(turn_player)
+    prompt = 'Player {0}, where do you place your token (1-9)? '.format(player_char)
     reminder_prompt = 'Invalid input; enter a digit from 1 to 9. '
+    occupied_cell_prompt = 'Position {0} is occupied; try again. '
     s = raw_input(prompt)
     while True:
         # need to check for occupied cells
         if s in valid_positions:
-            break
+            position = int(s)
+            if board[position - 1] != 0:
+                s = raw_input(occupied_cell_prompt.format(position))
+            else:
+                return position
         else:
             s = raw_input(reminder_prompt)
 
 def play_turn():
     global turn_player
-    get_turn_player_input()
     print_board()
-    winner = get_winner()
-    print winner
+    position = get_turn_player_input()
+    board[position - 1] = turn_player
+    winning_player = get_winning_player()
     print
     turn_player *= -1
-    return winner
+    return winning_player
 
 def main():
+    winning_player = None
+    for turn in xrange(9):
+        winning_player = play_turn()
+        if winning_player:
+            break
     print_board()
-    board[4] = 1
-    play_turn()
-    board[2] = 1
-    play_turn()
-    board[6] = 1
-    play_turn()
-    board[6] = -1
-    play_turn()
-    board[0] = -1
-    play_turn()
-    board[3] = -1
-    play_turn()
+    if winning_player:
+        print 'Player {0} wins the game.'.format(get_player_char(winning_player))
+    else:
+        print 'The game ends in a tie.'
 
 if __name__ == '__main__':
     main()
