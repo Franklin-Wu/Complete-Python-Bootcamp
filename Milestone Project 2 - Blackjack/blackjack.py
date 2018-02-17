@@ -41,11 +41,33 @@ class Deck:
     def __repr__(self):
         return str(self.cards)
 
+    def deal_card(self):
+        return self.cards.pop()
+
+    def get_card_count(self):
+        return len(self.cards)
+
     def get_values(self):
         return map(lambda card: card.get_value(), self.cards)
 
     def shuffle(self):
         shuffle(self.cards)
+
+class Game:
+    def __init__(self):
+        self.deck = Deck()
+        self.dealer_hand = Hand()
+        self.player_hand = Hand()
+
+class Hand:
+    def __init__(self):
+        self.cards = []
+
+    def add_card(self, card):
+        self.cards.append(card)
+
+    def get_value(self):
+        return reduce(lambda card_a, card_b: card_a.get_value() + card_b.get_value(), self.cards)
 
 def main():
     deck = Deck()
@@ -54,6 +76,9 @@ def main():
     deck.shuffle()
     print deck
     print deck.get_values()
+    while (deck.get_card_count()):
+        card = deck.deal_card()
+        print card, card.get_value()
 
 if __name__ == '__main__':
     main()
