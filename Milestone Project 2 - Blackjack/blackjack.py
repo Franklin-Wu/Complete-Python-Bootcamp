@@ -44,7 +44,7 @@ class Deck:
     def deal_card(self):
         return self.cards.pop()
 
-    def get_card_count(self):
+    def get_size(self):
         return len(self.cards)
 
     def get_values(self):
@@ -54,14 +54,30 @@ class Deck:
         shuffle(self.cards)
 
 class Game:
-    def __init__(self):
-        self.deck = Deck()
+    def __init__(self, deck):
+        self.deck = deck
         self.dealer_hand = Hand()
         self.player_hand = Hand()
+
+    @staticmethod
+    def get_minimum_required_deck_size():
+        # TODO: add explanation.
+        return 16
+
+    def play(self):
+        self.dealer_hand.add_card(self.deck.deal_card())
+        self.player_hand.add_card(self.deck.deal_card())
+        self.dealer_hand.add_card(self.deck.deal_card())
+        self.player_hand.add_card(self.deck.deal_card())
+        print self.dealer_hand, self.player_hand
 
 class Hand:
     def __init__(self):
         self.cards = []
+
+    def __repr__(self):
+        string = reduce(lambda card_a, card_b: str(card_a) + ',' + str(card_b), self.cards)
+        return string + ' ' + str(self.get_value())
 
     def add_card(self, card):
         self.cards.append(card)
@@ -69,16 +85,35 @@ class Hand:
     def get_value(self):
         return reduce(lambda card_a, card_b: card_a.get_value() + card_b.get_value(), self.cards)
 
+class Player:
+    def __init__(self):
+        self.name = 'Player'
+        self.bankroll = 20
+
+    def __repr__(self):
+        return str(self.name)
+
+    def credit_bankroll(self, credit):
+        self.bankroll += credit
+
+    def get_bankroll(self):
+        return self.bankroll;
+
+class Set:
+    minimum_required_deck_size = Game.get_minimum_required_deck_size()
+
+    def __init__(self):
+        self.deck = Deck()
+        self.deck.shuffle()
+
+    def play(self):
+        while self.deck.get_size() >= Set.minimum_required_deck_size:
+            game = Game(self.deck)
+            game.play()
+
 def main():
-    deck = Deck()
-    print deck
-    print deck.get_values()
-    deck.shuffle()
-    print deck
-    print deck.get_values()
-    while (deck.get_card_count()):
-        card = deck.deal_card()
-        print card, card.get_value()
+    set = Set()
+    set.play()
 
 if __name__ == '__main__':
     main()
