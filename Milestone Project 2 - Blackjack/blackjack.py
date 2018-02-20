@@ -86,9 +86,9 @@ class Hand:
         return reduce(lambda card_a, card_b: card_a.get_value() + card_b.get_value(), self.cards)
 
 class Player:
-    def __init__(self):
-        self.name = 'Player'
-        self.bankroll = 20
+    def __init__(self, name, bankroll):
+        self.name = name
+        self.bankroll = bankroll
 
     def __repr__(self):
         return str(self.name)
@@ -97,9 +97,12 @@ class Player:
         self.bankroll += credit
 
     def get_bankroll(self):
-        return self.bankroll;
+        return self.bankroll
 
-class Set:
+    def get_name(self):
+        return self.name
+
+class Shoe:
     minimum_required_deck_size = Game.get_minimum_required_deck_size()
 
     def __init__(self):
@@ -111,9 +114,33 @@ class Set:
             game = Game(self.deck)
             game.play()
 
+class Session:
+    def __init__(self):
+        self.shoe = Shoe()
+        self.player = Player('Player', 20)
+
+    def play(self):
+        name = self.player.get_name()
+        print 'Welcome to Blackjack {0}.'.format(name)
+        print 'Your initial bankroll is ${0}.'.format(self.player.get_bankroll())
+        end_session = False
+        while not end_session:
+            bankroll = self.player.get_bankroll()
+            prompt = '{0}, what is your bet (0 to quit, 1 - {1} to play)? '.format(name, bankroll)
+            while True:
+                string = raw_input(prompt)
+                if string.isdigit() and int(string) in xrange(0, self.player.get_bankroll() + 1):
+                    if int(string) == 0:
+                        end_session = True
+                    break
+                else:
+                    print 'Invalid input.'
+        print 'Thank you for playing {0}.'.format(name)
+        print 'Your final bankroll is ${0}.'.format(self.player.get_bankroll())
+
 def main():
-    set = Set()
-    set.play()
+    session = Session()
+    session.play()
 
 if __name__ == '__main__':
     main()
