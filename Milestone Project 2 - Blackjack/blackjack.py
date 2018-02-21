@@ -37,6 +37,7 @@ class Card:
 class Deck:
     def __init__(self):
         self.cards = [Card(value, suit) for value in card_values.keys() for suit in card_suits]
+        self.shuffle()
 
     def __repr__(self):
         return str(self.cards)
@@ -64,12 +65,18 @@ class Game:
         # TODO: add explanation.
         return 16
 
-    def play(self):
+    def deal(self):
         self.dealer_hand.add_card(self.deck.deal_card())
         self.player_hand.add_card(self.deck.deal_card())
         self.dealer_hand.add_card(self.deck.deal_card())
         self.player_hand.add_card(self.deck.deal_card())
         print self.dealer_hand, self.player_hand
+
+    def view_dealer(self):
+        return ' '.join(['??', str(self.dealer_hand.get_cards()[1])])
+
+    def view_player(self):
+        return ' '.join(map(lambda card: str(card), self.player_hand.get_cards()))
 
 class Hand:
     def __init__(self):
@@ -81,6 +88,9 @@ class Hand:
 
     def add_card(self, card):
         self.cards.append(card)
+
+    def get_cards(self):
+        return self.cards
 
     def get_value(self):
         return reduce(lambda card_a, card_b: card_a.get_value() + card_b.get_value(), self.cards)
@@ -102,21 +112,9 @@ class Player:
     def get_name(self):
         return self.name
 
-class Shoe:
-    minimum_required_deck_size = Game.get_minimum_required_deck_size()
-
-    def __init__(self):
-        self.deck = Deck()
-        self.deck.shuffle()
-
-    def play(self):
-        while self.deck.get_size() >= Set.minimum_required_deck_size:
-            game = Game(self.deck)
-            game.play()
-
 class Session:
     def __init__(self):
-        self.shoe = Shoe()
+        self.deck = Deck()
         self.player = Player('Player', 20)
 
     def play(self):
@@ -126,7 +124,7 @@ class Session:
         end_session = False
         while not end_session:
             bankroll = self.player.get_bankroll()
-            prompt = '{0}, what is your bet (0 to quit, 1 - {1} to play)? '.format(name, bankroll)
+            prompt = '{0}, what is your bet (0 to quit, 1 - {1} to play)? $'.format(name, bankroll)
             while True:
                 string = raw_input(prompt)
                 if string.isdigit() and int(string) in xrange(0, self.player.get_bankroll() + 1):
@@ -135,6 +133,13 @@ class Session:
                     break
                 else:
                     print 'Invalid input.'
+            if self.deck.get_size() < Game.get_minimum_required_deck_size():
+                print 'Shuffling new deck.'
+                self.deck = Deck()
+            game = Game(self.deck)
+            game.deal()
+            print game.view_dealer()
+            print game.view_player()
         print 'Thank you for playing {0}.'.format(name)
         print 'Your final bankroll is ${0}.'.format(self.player.get_bankroll())
 
