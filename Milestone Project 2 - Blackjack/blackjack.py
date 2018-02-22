@@ -131,20 +131,17 @@ class Session:
             else:
                 print 'Invalid input.'
 
-    def query_play(self, name):
-        continue_play = True
+    def query_wager(self, name):
         bankroll = self.player.get_bankroll()
         print
-        prompt = '{0}, what is your bet (0 to quit, 1 - {1} to play)? $'.format(name, bankroll)
+        prompt = '{0}, what is your wager (0 to quit, 1 - {1} to play)? $'.format(name, bankroll)
         while True:
             string = raw_input(prompt)
-            if string.isdigit() and int(string) in xrange(0, self.player.get_bankroll() + 1):
-                if int(string) == 0:
-                    continue_play = False
-                break
-            else:
-                print 'Invalid input.'
-        return continue_play
+            if string.isdigit():
+                wager = int(string)
+                if wager in xrange(0, bankroll + 1):
+                    return wager
+            print 'Invalid input.'
 
     def play(self):
         name = self.player.get_name()
@@ -152,7 +149,8 @@ class Session:
         print 'Welcome to Blackjack {0}.'.format(name)
         print 'Your initial bankroll is ${0}.'.format(self.player.get_bankroll())
         while True:
-            if not self.query_play(name):
+            wager = self.query_wager(name)
+            if not wager:
                 break;
             if self.deck.get_size() < Game.get_minimum_required_deck_size():
                 print 'Shuffling new deck.'
@@ -160,7 +158,6 @@ class Session:
             game = Game(self.deck)
             game.deal()
             self.print_state(game)
-            hit_available = True
             while self.query_hit(name):
                 pass
         print
