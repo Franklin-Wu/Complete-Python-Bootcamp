@@ -59,6 +59,7 @@ class Game:
         self.deck = deck
         self.dealer_hand = Hand()
         self.player_hand = Hand()
+        self.player_standing = False
 
     @staticmethod
     def get_minimum_required_deck_size():
@@ -71,11 +72,25 @@ class Game:
         self.dealer_hand.add_card(self.deck.deal_card())
         self.player_hand.add_card(self.deck.deal_card())
 
-    def get_dealer_state(self):
-        return ' '.join(['??', str(self.dealer_hand.get_cards()[1])])
+    def get_dealer_display(self):
+        cards = ' '.join(map(lambda card: str(card), self.dealer_hand.get_cards()))
+        if self.player_standing:
+            value = '[' + str(self.dealer_hand.get_value()) + ']'
+        else:
+            cards = '??' + cards[2:]
+            value = '[??]'
+        return cards + '  ' + value
 
-    def get_player_state(self):
-        return ' '.join(map(lambda card: str(card), self.player_hand.get_cards()))
+    def get_player_display(self):
+        cards = ' '.join(map(lambda card: str(card), self.player_hand.get_cards()))
+        value = '[' + str(self.player_hand.get_value()) + ']'
+        return cards + '  ' + value
+
+    def hit(self):
+        print 'hitting'
+
+    def stand(self):
+        self.player_standing = True
 
 class Hand:
     def __init__(self):
@@ -117,8 +132,8 @@ class Session:
         self.player = Player('Player', 20)
 
     def print_state(self, game):
-        print 'Dealer: {0}'.format(game.get_dealer_state())
-        print '{0}: {1}'.format(self.player.get_name(), game.get_player_state())
+        print 'Dealer: {0}'.format(game.get_dealer_display())
+        print '{0}: {1}'.format(self.player.get_name(), game.get_player_display())
 
     def query_hit(self, name):
         prompt = '{0}, would you like a card (y/n)? '.format(name)
@@ -159,7 +174,10 @@ class Session:
             game.deal()
             self.print_state(game)
             while self.query_hit(name):
-                pass
+                game.hit()
+                self.print_state(game)
+            game.stand()
+            self.print_state(game)
         print
         print 'Thank you for playing {0}.'.format(name)
         print 'Your final bankroll is ${0}.'.format(self.player.get_bankroll())
