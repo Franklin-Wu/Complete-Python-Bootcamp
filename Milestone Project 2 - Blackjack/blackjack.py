@@ -120,31 +120,31 @@ class Session:
         print 'Dealer: {0}'.format(game.get_dealer_state())
         print '{0}: {1}'.format(self.player.get_name(), game.get_player_state())
 
-    def query_play(self):
-        pass
-
     def query_card(self):
         pass
+
+    def query_play(self, name):
+        continue_play = True
+        bankroll = self.player.get_bankroll()
+        print
+        prompt = '{0}, what is your bet (0 to quit, 1 - {1} to play)? $'.format(name, bankroll)
+        while True:
+            string = raw_input(prompt)
+            if string.isdigit() and int(string) in xrange(0, self.player.get_bankroll() + 1):
+                if int(string) == 0:
+                    continue_play = False
+                break
+            else:
+                print 'Invalid input.'
+        return continue_play
 
     def play(self):
         name = self.player.get_name()
         print
         print 'Welcome to Blackjack {0}.'.format(name)
         print 'Your initial bankroll is ${0}.'.format(self.player.get_bankroll())
-        end_session = False
         while True:
-            bankroll = self.player.get_bankroll()
-            print
-            prompt = '{0}, what is your bet (0 to quit, 1 - {1} to play)? $'.format(name, bankroll)
-            while True:
-                string = raw_input(prompt)
-                if string.isdigit() and int(string) in xrange(0, self.player.get_bankroll() + 1):
-                    if int(string) == 0:
-                        end_session = True
-                    break
-                else:
-                    print 'Invalid input.'
-            if end_session:
+            if not self.query_play(name):
                 break;
             if self.deck.get_size() < Game.get_minimum_required_deck_size():
                 print 'Shuffling new deck.'
@@ -152,7 +152,7 @@ class Session:
             game = Game(self.deck)
             game.deal()
             self.print_state(game)
-            prompt = '{0}, would you like a card (y/n)? '.format(name, bankroll)
+            prompt = '{0}, would you like a card (y/n)? '.format(name)
             hit_available = True
             while hit_available:
                 string = raw_input(prompt)
