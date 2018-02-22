@@ -70,12 +70,11 @@ class Game:
         self.player_hand.add_card(self.deck.deal_card())
         self.dealer_hand.add_card(self.deck.deal_card())
         self.player_hand.add_card(self.deck.deal_card())
-        print self.dealer_hand, self.player_hand
 
-    def view_dealer(self):
+    def get_dealer_state(self):
         return ' '.join(['??', str(self.dealer_hand.get_cards()[1])])
 
-    def view_player(self):
+    def get_player_state(self):
         return ' '.join(map(lambda card: str(card), self.player_hand.get_cards()))
 
 class Hand:
@@ -117,13 +116,25 @@ class Session:
         self.deck = Deck()
         self.player = Player('Player', 20)
 
+    def print_state(self, game):
+        print 'Dealer: {0}'.format(game.get_dealer_state())
+        print '{0}: {1}'.format(self.player.get_name(), game.get_player_state())
+
+    def query_play(self):
+        pass
+
+    def query_card(self):
+        pass
+
     def play(self):
         name = self.player.get_name()
+        print
         print 'Welcome to Blackjack {0}.'.format(name)
         print 'Your initial bankroll is ${0}.'.format(self.player.get_bankroll())
         end_session = False
-        while not end_session:
+        while True:
             bankroll = self.player.get_bankroll()
+            print
             prompt = '{0}, what is your bet (0 to quit, 1 - {1} to play)? $'.format(name, bankroll)
             while True:
                 string = raw_input(prompt)
@@ -133,13 +144,25 @@ class Session:
                     break
                 else:
                     print 'Invalid input.'
+            if end_session:
+                break;
             if self.deck.get_size() < Game.get_minimum_required_deck_size():
                 print 'Shuffling new deck.'
                 self.deck = Deck()
             game = Game(self.deck)
             game.deal()
-            print game.view_dealer()
-            print game.view_player()
+            self.print_state(game)
+            prompt = '{0}, would you like a card (y/n)? '.format(name, bankroll)
+            hit_available = True
+            while hit_available:
+                string = raw_input(prompt)
+                if string == 'y':
+                    print 'hitting'
+                elif string == 'n':
+                    hit_available = False
+                else:
+                    print 'Invalid input.'
+        print
         print 'Thank you for playing {0}.'.format(name)
         print 'Your final bankroll is ${0}.'.format(self.player.get_bankroll())
 
