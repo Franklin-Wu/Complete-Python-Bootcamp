@@ -120,8 +120,16 @@ class Session:
         print 'Dealer: {0}'.format(game.get_dealer_state())
         print '{0}: {1}'.format(self.player.get_name(), game.get_player_state())
 
-    def query_card(self):
-        pass
+    def query_hit(self, name):
+        prompt = '{0}, would you like a card (y/n)? '.format(name)
+        while True:
+            string = raw_input(prompt)
+            if string == 'y':
+                return True
+            elif string == 'n':
+                return False
+            else:
+                print 'Invalid input.'
 
     def query_play(self, name):
         continue_play = True
@@ -152,16 +160,9 @@ class Session:
             game = Game(self.deck)
             game.deal()
             self.print_state(game)
-            prompt = '{0}, would you like a card (y/n)? '.format(name)
             hit_available = True
-            while hit_available:
-                string = raw_input(prompt)
-                if string == 'y':
-                    print 'hitting'
-                elif string == 'n':
-                    hit_available = False
-                else:
-                    print 'Invalid input.'
+            while self.query_hit(name):
+                pass
         print
         print 'Thank you for playing {0}.'.format(name)
         print 'Your final bankroll is ${0}.'.format(self.player.get_bankroll())
