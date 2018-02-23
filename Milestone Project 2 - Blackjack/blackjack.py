@@ -1,29 +1,29 @@
 from collections import OrderedDict
 from random import shuffle
 
-card_values = OrderedDict()
-card_values['2'] = 2
-card_values['3'] = 3
-card_values['4'] = 4
-card_values['5'] = 5
-card_values['6'] = 6
-card_values['7'] = 7
-card_values['8'] = 8
-card_values['9'] = 9
-card_values['T'] = 10
-card_values['J'] = 10
-card_values['Q'] = 10
-card_values['K'] = 10
-card_values['A'] = 11
-
-card_suits = [
-    'C',
-    'D',
-    'H',
-    'S',
-]
-
 class Card:
+    suits = [
+        'C',
+        'D',
+        'H',
+        'S',
+    ]
+
+    values = OrderedDict()
+    values['2'] = 2
+    values['3'] = 3
+    values['4'] = 4
+    values['5'] = 5
+    values['6'] = 6
+    values['7'] = 7
+    values['8'] = 8
+    values['9'] = 9
+    values['T'] = 10
+    values['J'] = 10
+    values['Q'] = 10
+    values['K'] = 10
+    values['A'] = 11
+
     def __init__(self, value, suit):
         self.value = value
         self.suit = suit
@@ -32,11 +32,11 @@ class Card:
         return self.value + self.suit
 
     def get_value(self):
-        return card_values[self.value]
+        return Card.values[self.value]
 
 class Deck:
     def __init__(self):
-        self.cards = [Card(value, suit) for value in card_values.keys() for suit in card_suits]
+        self.cards = [Card(value, suit) for value in Card.values.keys() for suit in Card.suits]
         self.shuffle()
 
     def __repr__(self):
@@ -60,6 +60,7 @@ class Game:
         self.dealer_hand = Hand()
         self.player_hand = Hand()
         self.player_standing = False
+        self.game_result = None
 
     @staticmethod
     def get_minimum_required_deck_size():
@@ -79,18 +80,25 @@ class Game:
         else:
             cards = '??' + cards[2:]
             value = '[??]'
-        return cards + '  ' + value
+        return value + ' ' + cards
 
     def get_player_display(self):
         cards = ' '.join(map(lambda card: str(card), self.player_hand.get_cards()))
-        value = '[' + str(self.player_hand.get_value()) + ']'
-        return cards + '  ' + value
+        value = '[{0:02}]'.format(self.player_hand.get_value())
+        return value + ' ' + cards
 
     def hit(self):
-        print 'hitting'
+        self.player_hand.add_card(self.deck.deal_card())
+        return self.player_hand.get_value()
+
+    def lose(self):
+        self.game_result = 0
 
     def stand(self):
         self.player_standing = True
+        while self.dealer_hand.get_value() < 17:
+            self.dealer_hand.add_card(self.deck.deal_card())
+        return self.dealer_hand.get_value()
 
 class Hand:
     def __init__(self):
@@ -107,7 +115,7 @@ class Hand:
         return self.cards
 
     def get_value(self):
-        return reduce(lambda card_a, card_b: card_a.get_value() + card_b.get_value(), self.cards)
+        return sum(map(lambda card: card.get_value(), self.cards))
 
 class Player:
     def __init__(self, name, bankroll):
@@ -162,6 +170,7 @@ class Session:
         name = self.player.get_name()
         print
         print 'Welcome to Blackjack {0}.'.format(name)
+        print 'Dealer stands on 17 (including soft 17).'
         print 'Your initial bankroll is ${0}.'.format(self.player.get_bankroll())
         while True:
             wager = self.query_wager(name)
@@ -174,8 +183,11 @@ class Session:
             game.deal()
             self.print_state(game)
             while self.query_hit(name):
-                game.hit()
+                player_value = game.hit()
                 self.print_state(game)
+                if player_value > 21:
+                    game.lose()
+                    break
             game.stand()
             self.print_state(game)
         print
