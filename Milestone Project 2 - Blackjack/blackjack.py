@@ -169,7 +169,7 @@ class Session:
     def play(self):
         name = self.player.get_name()
         print
-        print 'Welcome to Blackjack {0}.'.format(name)
+        print 'Welcome to Blackjack, {0}.'.format(name)
         print 'Dealer stands on 17 (including soft 17).'
         print 'Your initial bankroll is ${0}.'.format(self.player.get_bankroll())
         while True:
