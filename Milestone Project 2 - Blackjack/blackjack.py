@@ -1,5 +1,10 @@
 from collections import OrderedDict
-from random import shuffle
+from random import shuffle as random_shuffle
+from sys import argv as sys_argv
+from unittest import (
+    main as unittest_main,
+    TestCase,
+)
 
 class Card:
     suits = [
@@ -22,7 +27,7 @@ class Card:
     values['J'] = 10
     values['Q'] = 10
     values['K'] = 10
-    values['A'] = 11
+    values['A'] = 11 # can also be 1, which is handled in Hand.get_value()
 
     def __init__(self, value, suit):
         self.value = value
@@ -52,7 +57,7 @@ class Deck:
         return map(lambda card: card.get_value(), self.cards)
 
     def shuffle(self):
-        shuffle(self.cards)
+        random_shuffle(self.cards)
 
 class Game:
     def __init__(self, deck):
@@ -108,6 +113,19 @@ class Hand:
         string = reduce(lambda card_a, card_b: str(card_a) + ',' + str(card_b), self.cards)
         return string + ' ' + str(self.get_value())
 
+    @staticmethod
+    def get_value_considering_aces(values):
+        # An Ace may have a value 11 or 1. Calculate the optimal value by subtracting 10 for each
+        # Ace, whose dafault value is 11, until the value is less than 22.
+        value = sum(values)
+        ace_count = values.count(11)
+        while ace_count:
+            if value < 22:
+                break
+            value -= 10
+            ace_count -= 1
+        return value
+
     def add_card(self, card):
         self.cards.append(card)
 
@@ -115,7 +133,8 @@ class Hand:
         return self.cards
 
     def get_value(self):
-        return sum(map(lambda card: card.get_value(), self.cards))
+        values = map(lambda card: card.get_value(), self.cards)
+        return get_value_considering_aces(values)
 
 class Player:
     def __init__(self, name, bankroll):
@@ -194,9 +213,30 @@ class Session:
         print 'Thank you for playing {0}.'.format(name)
         print 'Your final bankroll is ${0}.'.format(self.player.get_bankroll())
 
-def main():
+class TestSample(TestCase):
+    def test_sample_bad(self):
+        self.assertEqual(1 + 1, 3)
+
+    def test_sample_good(self):
+        self.assertEqual(1 + 1, 2)
+
+def play():
+    '''
     session = Session()
     session.play()
+    '''
+    print Hand.get_value_considering_aces([10, 11])
+    print Hand.get_value_considering_aces([11, 11])
+    print Hand.get_value_considering_aces([11, 11, 11])
+    print Hand.get_value_considering_aces([10, 10, 10])
+
+def main():
+    if len(sys_argv) == 1:
+        play()
+    elif sys_argv[1] == '--unittest':
+        unittest_main(argv=[sys_argv[0]])
+    else:
+        print 'Usage: python {0} [--unittest]'.format(sys_argv[0])
 
 if __name__ == '__main__':
     main()
