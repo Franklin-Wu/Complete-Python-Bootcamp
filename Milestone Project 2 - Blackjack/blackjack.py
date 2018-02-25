@@ -134,7 +134,7 @@ class Hand:
 
     def get_value(self):
         values = map(lambda card: card.get_value(), self.cards)
-        return get_value_considering_aces(values)
+        return Hand.get_value_considering_aces(values)
 
 class HandTestCase(TestCase):
     def test_get_value_considering_aces(self):
@@ -238,10 +238,8 @@ class Session:
         print 'Your final bankroll is ${0}.'.format(self.player.get_bankroll())
 
 def play():
-    '''
     session = Session()
     session.play()
-    '''
 
 def main():
     if len(sys_argv) == 1:
