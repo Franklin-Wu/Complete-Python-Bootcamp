@@ -1,6 +1,7 @@
 from collections import OrderedDict
 from random import shuffle as random_shuffle
 from sys import argv as sys_argv
+from time import sleep as time_sleep
 from unittest import (
     main as unittest_main,
     TestCase,
@@ -60,17 +61,17 @@ class Deck:
         random_shuffle(self.cards)
 
 class Game:
+    dealer_stand_value = 17
+
+    # TODO: add explanation.
+    minimum_required_deck_size = 16
+
     def __init__(self, deck):
         self.deck = deck
         self.dealer_hand = Hand()
+        self.game_over = False
         self.player_hand = Hand()
         self.player_standing = False
-        self.game_result = None
-
-    @staticmethod
-    def get_minimum_required_deck_size():
-        # TODO: add explanation.
-        return 16
 
     def deal(self):
         self.dealer_hand.add_card(self.deck.deal_card())
@@ -78,9 +79,27 @@ class Game:
         self.dealer_hand.add_card(self.deck.deal_card())
         self.player_hand.add_card(self.deck.deal_card())
 
+    def dealer_hit(self):
+        self.dealer_hand.add_card(self.deck.deal_card())
+
+    def does_dealer_bust(self):
+        return self.dealer_hand.get_value() > 21
+
+    def does_dealer_have_blackjack(self):
+        pass
+
+    def does_dealer_win(self):
+        pass
+
+    def does_player_have_blackjack(self):
+        pass
+
+    def does_player_win(self):
+        pass
+
     def get_dealer_display(self):
         cards = ' '.join(map(lambda card: str(card), self.dealer_hand.get_cards()))
-        if self.player_standing:
+        if self.game_over or self.player_standing:
             value = '[' + str(self.dealer_hand.get_value()) + ']'
         else:
             cards = '??' + cards[2:]
@@ -92,18 +111,19 @@ class Game:
         value = '[{0:02}]'.format(self.player_hand.get_value())
         return value + ' ' + cards
 
-    def hit(self):
+    def is_game_over(self):
+        return self.game_over
+
+    def player_hit(self):
         self.player_hand.add_card(self.deck.deal_card())
-        return self.player_hand.get_value()
+        if self.player_hand.get_value() > 21:
+            self.game_over = True
 
-    def lose(self):
-        self.game_result = 0
-
-    def stand(self):
+    def player_stand(self):
         self.player_standing = True
-        while self.dealer_hand.get_value() < 17:
-            self.dealer_hand.add_card(self.deck.deal_card())
-        return self.dealer_hand.get_value()
+
+    def should_dealer_hit(self):
+        return self.dealer_hand.get_value() < Game.dealer_stand_value
 
 class Hand:
     def __init__(self):
@@ -219,21 +239,31 @@ class Session:
             wager = self.query_wager(name)
             if not wager:
                 break;
-            if self.deck.get_size() < Game.get_minimum_required_deck_size():
-                print 'Shuffling new deck.'
+            if self.deck.get_size() < Game.minimum_required_deck_size:
+                print 'Shuffling deck.'
                 self.deck = Deck()
             game = Game(self.deck)
             game.deal()
             self.print_state(game)
             while self.query_hit(name):
-                player_value = game.hit()
+                player_value = game.player_hit()
                 self.print_state(game)
-                if player_value > 21:
-                    game.lose()
+                if game.is_game_over():
+                    print '{0} busts.'.format(name)
                     break
-            game.stand()
+            if game.is_game_over():
+                continue
+            game.player_stand()
             self.print_state(game)
-        print
+            while game.should_dealer_hit():
+                print 'Dealer hitting...'
+                time_sleep(1)
+                game.dealer_hit()
+                self.print_state(game)
+            if game.does_dealer_bust():
+                print 'Dealer busts.'
+            else:
+                print 'Dealer stands.'
         print 'Thank you for playing {0}.'.format(name)
         print 'Your final bankroll is ${0}.'.format(self.player.get_bankroll())
 
