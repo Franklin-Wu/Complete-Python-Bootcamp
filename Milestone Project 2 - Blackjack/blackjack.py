@@ -136,6 +136,30 @@ class Hand:
         values = map(lambda card: card.get_value(), self.cards)
         return get_value_considering_aces(values)
 
+class HandTestCase(TestCase):
+    def test_get_value_considering_aces(self):
+        self.assertEqual(1 + 1, 2)
+        self.assertEqual(Hand.get_value_considering_aces([]), 0)
+        self.assertEqual(Hand.get_value_considering_aces([2, 3]), 5)
+        self.assertEqual(Hand.get_value_considering_aces([2, 9]), 11)
+        self.assertEqual(Hand.get_value_considering_aces([2, 9, 2, 9]), 22)
+        self.assertEqual(Hand.get_value_considering_aces([10]), 10)
+        self.assertEqual(Hand.get_value_considering_aces([10, 10]), 20)
+        self.assertEqual(Hand.get_value_considering_aces([10, 11]), 21)
+        self.assertEqual(Hand.get_value_considering_aces([10, 10, 10]), 30)
+        self.assertEqual(Hand.get_value_considering_aces([10, 10, 11]), 21)
+        self.assertEqual(Hand.get_value_considering_aces([10, 11, 11]), 12)
+        self.assertEqual(Hand.get_value_considering_aces([10, 11, 11, 11, 11, 11, 11]), 16)
+        self.assertEqual(Hand.get_value_considering_aces([11] * 1), 11)
+        self.assertEqual(Hand.get_value_considering_aces([11] * 2), 12)
+        self.assertEqual(Hand.get_value_considering_aces([11] * 3), 13)
+        self.assertEqual(Hand.get_value_considering_aces([11] * 4), 14)
+        self.assertEqual(Hand.get_value_considering_aces([11] * 5), 15)
+        self.assertEqual(Hand.get_value_considering_aces([11] * 6), 16)
+        self.assertEqual(Hand.get_value_considering_aces([11] * 10), 20)
+        self.assertEqual(Hand.get_value_considering_aces([11] * 11), 21)
+        self.assertEqual(Hand.get_value_considering_aces([11] * 12), 12)
+
 class Player:
     def __init__(self, name, bankroll):
         self.name = name
@@ -213,22 +237,11 @@ class Session:
         print 'Thank you for playing {0}.'.format(name)
         print 'Your final bankroll is ${0}.'.format(self.player.get_bankroll())
 
-class TestSample(TestCase):
-    def test_sample_bad(self):
-        self.assertEqual(1 + 1, 3)
-
-    def test_sample_good(self):
-        self.assertEqual(1 + 1, 2)
-
 def play():
     '''
     session = Session()
     session.play()
     '''
-    print Hand.get_value_considering_aces([10, 11])
-    print Hand.get_value_considering_aces([11, 11])
-    print Hand.get_value_considering_aces([11, 11, 11])
-    print Hand.get_value_considering_aces([10, 10, 10])
 
 def main():
     if len(sys_argv) == 1:
