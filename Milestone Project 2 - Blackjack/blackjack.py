@@ -82,25 +82,38 @@ class Game:
     def dealer_hit(self):
         self.dealer_hand.add_card(self.deck.deal_card())
 
+    def end(self):
+        self.game_over = True
+
     def does_dealer_bust(self):
         return self.dealer_hand.get_value() > 21
 
     def does_dealer_have_blackjack(self):
-        pass
+        return (len(self.dealer_hand) == 2) and (self.dealer_hand.get_value() == 21)
 
     def does_dealer_win(self):
-        pass
+        if self.game_over:
+            dealer_value = self.dealer_hand.get_value()
+            player_value = self.player_hand.get_value()
+            return (dealer_value <= 21) and ((player_value > 21) or (dealer_value > player_value))
+        else:
+            return False
 
     def does_player_have_blackjack(self):
-        pass
+        return (len(self.player_hand) == 2) and (self.player_hand.get_value() == 21)
 
     def does_player_win(self):
-        pass
+        if self.game_over:
+            dealer_value = self.dealer_hand.get_value()
+            player_value = self.player_hand.get_value()
+            return (player_value <= 21) and ((dealer_value > 21) or (player_value > dealer_value))
+        else:
+            return False
 
     def get_dealer_display(self):
         cards = ' '.join(map(lambda card: str(card), self.dealer_hand.get_cards()))
         if self.game_over or self.player_standing:
-            value = '[' + str(self.dealer_hand.get_value()) + ']'
+            value = '[{0:02}]'.format(self.dealer_hand.get_value())
         else:
             cards = '??' + cards[2:]
             value = '[??]'
@@ -128,6 +141,9 @@ class Game:
 class Hand:
     def __init__(self):
         self.cards = []
+
+    def __len__(self):
+        return len(self.cards)
 
     def __repr__(self):
         string = reduce(lambda card_a, card_b: str(card_a) + ',' + str(card_b), self.cards)
@@ -245,25 +261,43 @@ class Session:
             game = Game(self.deck)
             game.deal()
             self.print_state(game)
-            while self.query_hit(name):
-                player_value = game.player_hit()
-                self.print_state(game)
-                if game.is_game_over():
-                    print '{0} busts.'.format(name)
-                    break
+            if game.does_dealer_have_blackjack():
+                if game.does_player_have_blackjack():
+                    print 'Both dealer and player have blackjack.'
+                else:
+                    print 'Dealer has blackjack.'
+                game.end()
+            elif game.does_player_have_blackjack():
+                print 'Player has blackjack.'
+                game.end()
             if game.is_game_over():
-                continue
-            game.player_stand()
-            self.print_state(game)
-            while game.should_dealer_hit():
-                print 'Dealer hitting...'
-                time_sleep(1)
-                game.dealer_hit()
                 self.print_state(game)
-            if game.does_dealer_bust():
-                print 'Dealer busts.'
             else:
-                print 'Dealer stands.'
+                while self.query_hit(name):
+                    player_value = game.player_hit()
+                    self.print_state(game)
+                    if game.is_game_over():
+                        print '{0} busts.'.format(name)
+                        break
+                if not game.is_game_over():
+                    game.player_stand()
+                    self.print_state(game)
+                    while game.should_dealer_hit():
+                        print 'Dealer hitting...'
+                        time_sleep(1)
+                        game.dealer_hit()
+                        self.print_state(game)
+                    game.end()
+                    if game.does_dealer_bust():
+                        print 'Dealer busts.'
+                    else:
+                        print 'Dealer stands.'
+            if game.does_dealer_win():
+                print 'Dealer wins.'
+            elif game.does_player_win():
+                print 'Player wins.'
+            else:
+                print 'Push, dealer and player tie.'
         print 'Thank you for playing {0}.'.format(name)
         print 'Your final bankroll is ${0}.'.format(self.player.get_bankroll())
 
