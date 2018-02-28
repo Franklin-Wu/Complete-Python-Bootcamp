@@ -236,7 +236,11 @@ class Session:
     def query_wager(self, name):
         bankroll = self.player.get_bankroll()
         print
-        prompt = '{0}, what is your wager (0 to quit, 1 - {1} to play)? $'.format(name, bankroll)
+        if bankroll == 1:
+            valid_wagers = '1'
+        else:
+            valid_wagers = '1 - {}'.format(bankroll)
+        prompt = '{0}, what is your wager (0 to quit, {1} to play)? $'.format(name, valid_wagers)
         while True:
             string = raw_input(prompt)
             if string.isdigit():
@@ -294,10 +298,18 @@ class Session:
                         print 'Dealer stands.'
             if game.does_dealer_win():
                 print 'Dealer wins.'
+                self.player.credit_bankroll(-wager)
             elif game.does_player_win():
                 print 'Player wins.'
+                self.player.credit_bankroll(wager)
             else:
                 print 'Push, dealer and player tie.'
+            bankroll = self.player.get_bankroll()
+            if bankroll:
+                print '{0}, your bankroll is now ${1}.'.format(name, bankroll)
+            else:
+                print
+                break                
         print 'Thank you for playing {0}.'.format(name)
         print 'Your final bankroll is ${0}.'.format(self.player.get_bankroll())
 
